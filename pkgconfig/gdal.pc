@@ -1,0 +1,10 @@
+libdir=/usr/lib/
+includedir=/usr/include/gdal/
+
+Name: gdal
+Description: gdal, geos, proj
+Version: 1.1
+Libs: -L${libdir} -lgdal
+Cflags: -I${includedir}
+#Cflags: -I${rincludedir} -I${rincludedir}
+Libs.private:

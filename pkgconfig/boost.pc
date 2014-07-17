@@ -1,0 +1,8 @@
+libdir=~/src/boost_1_47_0
+includedir=/usr/local/lib
+Name: boost
+Description: boost
+Version: 1.47.0
+Libs: -L${libdir} -lboost_date_time -lboost_filesystem -lboost_graph -lboost_iostreams -lboost_math_c99 -lboost_math_c99f -lboost_math_c99l -lboost_math_tr1 -lboost_math_tr1f -lboost_math_tr1l -lboost_prg_exec_monitor -lboost_program_options -lboost_random -lboost_regex -lboost_serialization -lboost_signals -lboost_system -lboost_unit_test_framework -lboost_wave -lboost_wserialization -L/opt/local/lib/ -lboost_thread-mt
+Cflags: -I${includedir}
+Libs.private:
