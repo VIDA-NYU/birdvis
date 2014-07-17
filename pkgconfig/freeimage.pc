@@ -1,0 +1,8 @@
+libdir=/usr/lib
+includedir=/usr/include
+Name: freeimage
+Description: freeimage
+Version: 3.15.1
+Libs: -L${libdir} -lfreeimage
+Cflags: -I${includedir}
+Libs.private:

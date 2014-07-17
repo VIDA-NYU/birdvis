@@ -1,0 +1,2 @@
+export PKG_CONFIG_PATH=/opt/local/lib/pkgconfig:/Users/nivanferreira/src/x/BirdVis/src/pkgconfig:$PKG_CONFIG_PATH
+export R_HOME=/Library/Frameworks/R.framework/Resources
