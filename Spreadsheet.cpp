@@ -1,3 +1,6 @@
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QColorDialog>
 /////////////////////////////////////////////////////////////////////////////////////
 //                                                                                 //
 // Copyright 2011-2013 NYU Polytechnic School of Engineering.                      //
@@ -466,6 +469,7 @@ ScrollPane::event_mouse_wheel(eventsystem::State *event_state)
 	deltaY += 15;
     else
 	deltaY -= 15;
+    return true;
 }
 
 
@@ -845,19 +849,12 @@ Spreadsheet::event_mouse_drop(eventsystem::State *event_state)
 			       QLineEdit::Normal,
 			       "1 1", 
 			       &ok);
-    if (ok && !st.isEmpty())
-    {
-	try{
-	    sscanf(st.toStdString().c_str(),"%d %d",&rows, &cols);
-	}		
-	catch(std::exception& e)
-	{
-	    cout << "catched exception\n";
-	    return false;
-	}
-	this->clear();
-	     
-    }
+    if (!ok || st.isEmpty()) return false;
+    char extra;
+    if (sscanf(st.toStdString().c_str(), "%d %d %c", &rows, &cols, &extra) != 2
+        || rows < 1 || cols < 1 || rows > 8 || cols > 8) return false;
+    Global::instance()->main_widget->makeCurrent();
+    this->clear();
 
     //
     if(this->env != NULL)

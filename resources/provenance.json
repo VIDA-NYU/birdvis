@@ -1,0 +1,177 @@
+{
+  "source": "/Users/csilva/birdvis_06_16_2011/birdvis.app/Contents/Resources",
+  "font_archive": "/Users/csilva/birdvis_06_16_2011/fonts.zip",
+  "font_archive_matches_bundle": true,
+  "files": [
+    {
+      "path": "usa_st.shp",
+      "bytes": 222344,
+      "sha256": "fa1ac5b0db8cdd6732bd08d62c7c80bcd881d27e67604e724be0390af3f9ad74"
+    },
+    {
+      "path": "usa_st.shx",
+      "bytes": 508,
+      "sha256": "b3dcbbd21bf8a1cfc8193ab92b04c4b107dfb926b0ebe4d23833252c62d56c1f"
+    },
+    {
+      "path": "usa_st.dbf",
+      "bytes": 22423,
+      "sha256": "eb56b28fa504d5bb9872849dbb17ab267bd63669c331c4bf652da7532882405f"
+    },
+    {
+      "path": "counties.shp",
+      "bytes": 1517988,
+      "sha256": "36813558ff72ab1c1327434d9eff1f9cd653e1892bd68130a60f6fe6088a44d2"
+    },
+    {
+      "path": "counties.shx",
+      "bytes": 25220,
+      "sha256": "d6fd03b59271d3ff913989bd4636f39852bd5b7a87233c7a36685475929736a9"
+    },
+    {
+      "path": "counties.dbf",
+      "bytes": 213714,
+      "sha256": "f616710b0dfcf70cc457f91e2839ffe63f9ee690210765cdd5d21e0c0c6096d4"
+    },
+    {
+      "path": "fonts/arial_7.description",
+      "bytes": 5495,
+      "sha256": "731c2d3f2aa5deb6f6489c020e24017dd9cd8c4d25d9279e2ec10743401a7a9d"
+    },
+    {
+      "path": "fonts/arial_7.sgi",
+      "bytes": 187325,
+      "sha256": "96fce88b2a1d1273587ae584820e2711c15e349745fd3e8c52609227f98cc67d"
+    },
+    {
+      "path": "fonts/arial_8.description",
+      "bytes": 5491,
+      "sha256": "0fbc87ca8eeedc746a7fe006e3f24d172f32df4888d4dc760151856dd0302d59"
+    },
+    {
+      "path": "fonts/arial_8.sgi",
+      "bytes": 185210,
+      "sha256": "d35f98498a73f33a390a7ee4b33f4d4234864040c5f7d7564db59934ee638aa3"
+    },
+    {
+      "path": "fonts/arial_9.description",
+      "bytes": 5495,
+      "sha256": "03fb70e660308dcc5d19bcd52754fb3e59a6c8bfdd8bbca1f9aad3b0457336ae"
+    },
+    {
+      "path": "fonts/arial_9.sgi",
+      "bytes": 202108,
+      "sha256": "15630b79eb0f47ffea472d7d6c06271689903a97e7984fb8d8c292c573250182"
+    },
+    {
+      "path": "fonts/arial_10.description",
+      "bytes": 5505,
+      "sha256": "7cae9f1fe119707173aadccc8cf59cb1d3a0d1689ae6f671b4f06fa30cf7b0d2"
+    },
+    {
+      "path": "fonts/arial_10.sgi",
+      "bytes": 202108,
+      "sha256": "0248e29aca65c3a69bb7da7d05cfe23c9621044389c95b522610fbd4877bd04c"
+    },
+    {
+      "path": "fonts/arial_11.description",
+      "bytes": 5630,
+      "sha256": "eff21553deaad51cbdf07deec1de51ee89d6f121d89aa89d93e9a0980394afa4"
+    },
+    {
+      "path": "fonts/arial_11.sgi",
+      "bytes": 213086,
+      "sha256": "19b522f134dfb597144c4015a8164fab97707b5d9b31ca235dcbf142d34cfd6a"
+    },
+    {
+      "path": "fonts/arial_12.description",
+      "bytes": 5647,
+      "sha256": "bb62ef520757b72975322e89c403f8d456b8bddc85205896c576053dc0c18e18"
+    },
+    {
+      "path": "fonts/arial_12.sgi",
+      "bytes": 211382,
+      "sha256": "31f07ca07bc532f039e3d45123be3c69f13f04ea96c34360ac97451cedae3631"
+    },
+    {
+      "path": "fonts/arial_13.description",
+      "bytes": 5752,
+      "sha256": "8481318b109f0b306731f01433d645a3a8ccdc5da9132cba30bbed99c3402ec7"
+    },
+    {
+      "path": "fonts/arial_13.sgi",
+      "bytes": 253496,
+      "sha256": "d1d4b95ca6d9eb785b9899863b3dc7c8cd55cc1f20c311dba881bff862b3c17e"
+    },
+    {
+      "path": "fonts/arial_14.description",
+      "bytes": 5980,
+      "sha256": "cfa05065c78d31844ecc65eb69ddb14691a7394392ff2fbc9a877323801ef762"
+    },
+    {
+      "path": "fonts/arial_14.sgi",
+      "bytes": 269243,
+      "sha256": "177528d21104d895e33eeab31691e1a28a3ead5437ac7873f9f2e5a230dc2ec1"
+    },
+    {
+      "path": "fonts/arial_15.description",
+      "bytes": 6136,
+      "sha256": "1bd135071763a21163b5ad9c63d217bac0529ac07367b99f2c0a9dc4ab26aef8"
+    },
+    {
+      "path": "fonts/arial_15.sgi",
+      "bytes": 268974,
+      "sha256": "f2407056265864657c22ba99df935854abbba1f8705da12ee2fa8ee03ac7ab18"
+    },
+    {
+      "path": "fonts/arial_16.description",
+      "bytes": 6165,
+      "sha256": "b84a1e68268c9f36ca3eb0a3cbd4560d0431f550cd9a4f3883e115c035ea829c"
+    },
+    {
+      "path": "fonts/arial_16.sgi",
+      "bytes": 280669,
+      "sha256": "b81600d5a43bef61ec44c0804ad13edad0b38cc4bb1181b10a9627840ef0dff3"
+    },
+    {
+      "path": "fonts/arial_17.description",
+      "bytes": 6202,
+      "sha256": "a42dff0943444ead753d0bdb771d15e32ee7e922325264cbcc0e019cf38c7eca"
+    },
+    {
+      "path": "fonts/arial_17.sgi",
+      "bytes": 281231,
+      "sha256": "b045d2e98d86a1c1cfb6c0aa31ef9c5850d00ce16aab4a40483acb41646b01d3"
+    },
+    {
+      "path": "fonts/arial_18.description",
+      "bytes": 6343,
+      "sha256": "54e7bca0eebc8173349a93c38677f63dc0d5752bb67ef5c7a051668582ac3706"
+    },
+    {
+      "path": "fonts/arial_18.sgi",
+      "bytes": 296128,
+      "sha256": "fc8af57e3054c4067b01c974c4f8285d1ed214a2784949dec843b64bc5876db0"
+    },
+    {
+      "path": "fonts/arial_19.description",
+      "bytes": 6369,
+      "sha256": "939088b8990c55f632184e6383dbd267d1600711fc16d71a9f7c6a8e5f2530f2"
+    },
+    {
+      "path": "fonts/arial_19.sgi",
+      "bytes": 297618,
+      "sha256": "7d880fe2c3987e3dbee371cf9d913af5464e667a5bed3ce3bb27218be36ac57f"
+    },
+    {
+      "path": "fonts/arial_200.description",
+      "bytes": 7941,
+      "sha256": "eb10d5838f568204e4f0da7234408d0dfbab3b40c0174067dec93c8bd69eb689"
+    },
+    {
+      "path": "fonts/arial_200.sgi",
+      "bytes": 8976528,
+      "sha256": "9779d52155c4c745dfb35a2a8df200804aea7b0f755399ad69080883d9e98bf3"
+    }
+  ]
+}

@@ -25,8 +25,9 @@
 
 #include "SimpleEnvironment.hpp"
 
-#include <QtGui>
-#include <QtOpenGL>
+#include <QInputDialog>
+#include <QLineEdit>
+
 #include <QDialog>
 
 #include <boost/any.hpp>
@@ -1001,15 +1002,15 @@ SimpleEnvironment::search(int state)
     string x="";
     bool   ok;
     QString st = QInputDialog::getText(NULL,//this->parent, 
-				       "Search (e.g. Florida)",
-				       "Value", 
+				       "Search states and counties",
+				       "State, or County, State",
 				       QLineEdit::Normal,
 				       x.c_str(), 
 				       &ok);
     if (ok && !st.isEmpty())
     {
 	float x[4];
-	Global::instance()->keyword_bounds(st.toStdString(), x);
+	if (!Global::instance()->keyword_bounds(st.toStdString(), x)) return;
 	ViewRect vr(x[0],x[1],x[2],x[3]);
 	mod_world_window->setWorldWindow(vr);
     }

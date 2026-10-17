@@ -28,7 +28,7 @@
 
 #define xDEBUG_GL_UTIL
 
-#include <QtOpenGL>
+#include <GL/glew.h>
 
 #include "font.h"
 

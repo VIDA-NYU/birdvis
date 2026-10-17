@@ -26,13 +26,15 @@
 #ifndef __TEXTURE__
 #define __TEXTURE__
 
-#include <GL/glew.h>
+#include "GLResource.hpp"
 #include <iostream>
 
 using namespace std;
 
 class Texture{
 private:
+    GLResource gpu;
+    std::string sourceFilename;
     GLuint   texture_id;
     unsigned width;
     unsigned height;

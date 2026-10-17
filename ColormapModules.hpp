@@ -71,12 +71,12 @@ public:
 
 public:
 
-    const static float margin_left   = 38;
-    const static float margin_right  = 5;
-    const static float margin_bottom = 20;
-    const static float margin_top    = 12;
-    const static float handle_radius = 6;
-    const static float text_fix      = 0;
+    static constexpr float margin_left   = 38;
+    static constexpr float margin_right  = 5;
+    static constexpr float margin_bottom = 20;
+    static constexpr float margin_top    = 12;
+    static constexpr float handle_radius = 6;
+    static constexpr float text_fix      = 0;
 
     ColormapRendererDesc *colormapDescription;
 

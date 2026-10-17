@@ -34,6 +34,10 @@
 #include<algorithm>
 
 #include "bvdata.hpp"
+#include <stdexcept>
+#include <filesystem>
+#include <QDir>
+#include <QFileInfo>
 
 #define xDEBUG_BVDATAREPOSITORY
 #define xDEBUG_BVDATAFILE
@@ -203,7 +207,30 @@ bvdata::File::load(bool force)
 
     stringstream ss;
 
-    ss << "load(\"" << this->filename << "\")" << endl;
+    repository->R["birdvis_load_path"] = this->filename;
+    repository->runExpression(R"(
+        bv.data.list <- local({
+            e <- new.env()
+            load(birdvis_load_path, envir=e)
+            if (!exists('bv.data.list', envir=e, inherits=FALSE)) stop('Missing bv.data.list')
+            d <- e$bv.data.list
+            stopifnot(all(c('bv.species','bv.dates','bv.grid.spec','bv.grid.spec.predictors',
+                           'bv.predictors','bv.variables') %in% names(d)))
+            # Some 2011 experiments use an empty string and empty grid for no predictors.
+            if (length(d$bv.predictors)==1 && identical(d$bv.predictors, '')) d$bv.predictors <- list()
+            if (length(d$bv.predictors)==0 && length(d$bv.grid.spec.predictors)==0)
+                d$bv.grid.spec.predictors <- d$bv.grid.spec
+            stopifnot(length(d$bv.predictors) %% 2 == 0)
+            for (spec in list(d$bv.grid.spec, d$bv.grid.spec.predictors)) {
+                spec <- as.numeric(spec)
+                stopifnot(length(spec)==6, all(is.finite(spec)), all(spec[3:6]>0))
+            }
+            stopifnot(length(d$bv.dates)>0, length(d$bv.variables$p)==length(d$bv.dates))
+            d
+        })
+    )");
+    predictors.clear();
+    dates.clear();
     ss << "FILES[[" << this->id 
        << "]] = list(species=bv.data.list$bv.species, dates=bv.data.list$bv.dates,"
 	" grid=bv.data.list$bv.grid.spec, variables=bv.data.list$bv.variables)" << endl;
@@ -313,75 +340,20 @@ bvdata::File::load(bool force)
     cout << "NUMBER OF TIME STEPS = " << this->num_time_steps << endl;
 #endif
 
-    //string dates[this->num_time_steps];
-    string x[this->num_time_steps];
-
-    for(int i = 0 ; i < this->num_time_steps ; i++){
-	stringstream ss;
-	ss << "bv.data.list$bv.dates[[" << (i+1) << "]]$" ;
-	//cout << ss.str() << endl;
-	string sDate = ss.str();    
-	
-
-	int day = repository->evalInt(sDate + "mday");
-	int month = repository->evalInt(sDate + "mon");
-	month++; //month between 0 and 11
-
-	int year = repository->evalInt(sDate + "year");	
-	year += 1900;
-
-	//string ithDate = repository->evalString(sDate);
-	//cout << "Date " << i << " = " << month << "|" << day << "|" << year << endl;
-	stringstream ssDate;
-	ssDate << year << "-" << month << "-" << day;
-	x[i] = ssDate.str();
+    for (int i=1; i<=num_time_steps; ++i) {
+        const auto formatted = repository->evalString(
+            "format(as.POSIXct(bv.data.list$bv.dates[[" + std::to_string(i) + "]]), '%Y-%m-%d')");
+        dates.push_back(boost::gregorian::from_simple_string(formatted));
     }
-
-
-//     string x[] = { 
-// 	"2009-01-05","2009-01-12","2009-01-19","2009-01-26","2009-02-02",
-// 	"2009-02-09","2009-02-16","2009-02-23","2009-03-02","2009-03-09",
-// 	"2009-03-16","2009-03-23","2009-03-30","2009-04-06","2009-04-13",
-// 	"2009-04-20","2009-04-27","2009-05-04","2009-05-11","2009-05-18",
-// 	"2009-05-25","2009-06-01","2009-06-08","2009-06-15","2009-06-22",
-// 	"2009-06-29","2009-07-06","2009-07-13","2009-07-20","2009-07-27",
-// 	"2009-08-03","2009-08-10","2009-08-17","2009-08-24","2009-08-31",
-// 	"2009-09-07","2009-09-14","2009-09-21","2009-09-28","2009-10-05",
-// 	"2009-10-12","2009-10-19","2009-10-26","2009-11-02","2009-11-09",
-// 	"2009-11-16","2009-11-23","2009-11-30","2009-12-07","2009-12-14",
-// 	"2009-12-21","2009-12-28"};
-
-    for (int i=0;i<num_time_steps;i++)
-    {
-#ifdef DEBUG_BVDATAREPOSITORY
-	cout << "processing " << x[i] << endl;
-#endif
-	
-	struct tm tm_val;
-
-	if (strptime(x[i].c_str(),"%Y-%m-%d",&tm_val) == NULL)
-	    printf("error\n\n");
-	
-	    tm_val.tm_hour  = 0;
-	    tm_val.tm_min   = 0;
-	    tm_val.tm_sec   = 0;
-	    tm_val.tm_wday  = 0;
-	    tm_val.tm_yday  = 0;
-	    tm_val.tm_isdst = 0;
-	    
-	    int year  = tm_val.tm_year + 1900;
-	    int month = tm_val.tm_mon + 1;
-	    int day   = tm_val.tm_mday;
-
-#ifdef DEBUG_BVDATAREPOSITORY
-	    cout << "year " << year << endl;
-	    cout << "month " << month << endl;
-	    cout << "day " << day << endl;
-#endif
-	    
-	    dates.push_back(date(year,month,day));
-    }
-    
+    auto resolveImage = [](const std::string &name) {
+        if (name.empty()) return name;
+        QFileInfo info(QString::fromStdString(name));
+        if (info.isAbsolute()) return name;
+        const QDir root(qEnvironmentVariable("BIRDVIS_IMAGES", BIRDVIS_IMAGE_DIR));
+        return root.absoluteFilePath(info.fileName()).toStdString();
+    };
+    thumb_photo_file = resolveImage(thumb_photo_file);
+    pie_chart_file = resolveImage(pie_chart_file);
     //
     loaded = true;
 
@@ -450,9 +422,8 @@ bvdata::File::sumVariableOnSpatialQuadRange(string var_name,
 
 
     
-    ss << "sum(FILES[[" << this->id << "]]$variables$" 
-       << var_name << "[[" << (time_index+1) << "]][" << (x0+1) << ":" << (x1+1) << ","
-       << (y0+1) << ":" << (y1+1) << "])";
+    ss << "bv.integral(FILES[[" << this->id << "]]$variables$" << var_name
+       << "," << time_index+1 << "," << x0+1 << "," << x1+1 << "," << y0+1 << "," << y1+1 << ")";
 
     //cout << ss.str() << endl;
 
@@ -509,7 +480,7 @@ bv.integral = function(lst, time, xmin, xmax, ymin, ymax)\n\
 
     string getIndex_function="\
 getIndex = function(lst, elmt)\n\
-{\n\    
+{\n\
     for (i in 1:length(lst))\n\
     {\n\
         if(elmt == lst[[i]])\n\
@@ -666,7 +637,7 @@ string
 getShortName(string fileName){
 
     int size = fileName.size();
-    char shortName[size+1];
+    std::vector<char> shortName(size+1);
 
     int shortNameSize = 0;
     bool afterUnderScore = true;
@@ -697,7 +668,7 @@ getShortName(string fileName){
 
     shortName[shortNameSize] = '\0';    
 
-    return string(shortName);
+    return string(shortName.data());
 }
 
 bool bvdata::Repository::shortNameAlreadyExists(string shortname){
@@ -751,60 +722,23 @@ bvdata::Repository::addFilesFromDirectory(string directory)
 {
     //cout << "Repository::addFilesFromDirectory " << directory << endl;
 
-    DIR* currentDirectory = opendir(directory.c_str());
-
-    if(currentDirectory == NULL)
-	printf("Error while opening the directory %s\n", 
-	       directory.c_str());
-
-    struct dirent *dirEntry;
-
-    while(1){
-
-	dirEntry = readdir(currentDirectory);
-
-	if (dirEntry == NULL)
-	    break;
-
-	string filename(directory+"/"+dirEntry->d_name);
-
-	// cout << "directory   " << directory << endl;
-	// cout << "trying file " << filename << endl;
-
-	if(!this->hasDataFileExtension(filename))
-	    continue;
-
-	// cout << "It has the extension!!! " << filename << endl;
-
-	// check if filename is already on the list
-	if (filename2file.count(filename) > 0)
-	    continue;
-
-	// cout << "------------> add file " << filename << endl;
-
-        //define shortname
-	string shortname = getShortName(dirEntry->d_name);
-
-        bool shortNameExists = this->shortNameAlreadyExists(shortname);
-        int suffix = 1;
-
-        while(shortNameExists){
-             stringstream ss;
-             ss << shortname << "." << suffix;
-             suffix++;
-
-	     shortname = ss.str();
-	     shortNameExists = this->shortNameAlreadyExists(shortname);
-        }
-
-
-	// else add
-	this->addFile(filename, shortname);
-
-	// cout << "Entry Name " << dirEntry->d_name << " Shortname " << shortname << endl; 
-
-    } // end scanning directory
-
+    namespace fs = std::filesystem;
+    if (!fs::is_directory(directory))
+        throw std::runtime_error("Cannot open BirdVis data directory: " + directory);
+    std::vector<fs::path> paths;
+    for (const auto &entry : fs::recursive_directory_iterator(directory))
+        if (entry.is_regular_file() && entry.path().extension() == ".RData") paths.push_back(entry.path());
+    std::sort(paths.begin(), paths.end());
+    for (const auto &path : paths) {
+        const std::string filename = fs::absolute(path).string();
+        if (filename2file.count(filename)) continue;
+        const std::string base = getShortName(path.filename().string());
+        std::string shortname = base;
+        for (int suffix = 1; shortNameAlreadyExists(shortname); ++suffix)
+            shortname = base + "." + std::to_string(suffix);
+        addFile(filename, shortname);
+    }
+    if (files.empty()) throw std::runtime_error("No .RData datasets found in: " + directory);
 } // end add FilesFrom Directory
 
 
@@ -837,8 +771,10 @@ bvdata::Repository::runExpression(string expression)
 	
     } catch(std::exception& ex) {
         std::cerr << "Exception caught: " << ex.what() << std::endl;
+        throw;
     } catch(...) {
         std::cerr << "Unknown exception caught" << std::endl;
+        throw;
     }
 }
 
@@ -864,8 +800,10 @@ bvdata::Repository::evalNumericVector(string expression)
 
     } catch(std::exception& ex) {
         std::cerr << "Exception caught: " << ex.what() << std::endl;
+        throw;
     } catch(...) {
         std::cerr << "Unknown exception caught" << std::endl;
+        throw;
     }
 }
 
@@ -887,8 +825,10 @@ bvdata::Repository::evalInt(string expression)
 
     } catch(std::exception& ex) {
         std::cerr << "Exception caught: " << ex.what() << std::endl;
+        throw;
     } catch(...) {
         std::cerr << "Unknown exception caught" << std::endl;
+        throw;
     }
 }
 
@@ -909,10 +849,10 @@ bvdata::Repository::evalDouble(string expression)
 
     } catch(std::exception& ex) {
         std::cerr << "Exception caught: " << ex.what() << std::endl;
-	exit(1);
+        throw;
     } catch(...) {
         std::cerr << "Unknown exception caught" << std::endl;
-	exit(1);
+        throw;
     }
 }
 
@@ -958,8 +898,10 @@ bvdata::Repository::evalNumericMatrix(string expression)
 
     } catch(std::exception& ex) {
         std::cerr << "Exception caught: " << ex.what() << std::endl;
+        throw;
     } catch(...) {
         std::cerr << "Unknown exception caught" << std::endl;
+        throw;
     }
 }
 
@@ -982,10 +924,10 @@ bvdata::Repository::evalString(string expression)
 
     } catch(std::exception& ex) {
         std::cerr << "Exception caught: " << ex.what() << std::endl;
-	throw ex;
+        throw;
     } catch(...) {
         std::cerr << "Unknown exception caught" << std::endl;
-	throw exception();
+        throw;
     }
 }
 
@@ -1123,6 +1065,7 @@ bvdata::Repository::get2DGrid(bvdata::File* f, string variable_internal_name, in
 
     int xcells = M.nrow();
     int ycells = M.ncol();
+    if (xcells <= 0 || ycells <= 0) throw std::invalid_argument("Empty grid");
 
     datatypes::Grid *grid = new Grid(xcells, ycells, quad);
     grid->setValue(0,0,M(0,0));
@@ -1189,7 +1132,7 @@ bvdata::File* bvdata::Repository::getFileByShortName(string shortname){
 	    return f;
     }
 
-    return f;
+    return nullptr;
 }
 
 ViewRect bvdata::Repository::getVariableQuad(string dataset_name, string variable_name){
@@ -1211,9 +1154,10 @@ ViewRect bvdata::Repository::getVariableQuad(string dataset_name, string variabl
 
 ViewRect bvdata::Repository::getVariableQuad(File* dataset, string variable_name){
     File* f  = dataset;
+    if (!f) throw std::invalid_argument("Unknown dataset");
 
     if(variable_name.compare("p") == 0 || variable_name.compare("sd") == 0)
-	return this->getDefaultLonLatQuad();
+	return f->quad;
 
     int numberOfPredictors = f->getNumPredictors();
 
@@ -1224,6 +1168,7 @@ ViewRect bvdata::Repository::getVariableQuad(File* dataset, string variable_name
 	if(variable_name.compare(p.internal_name) == 0)
 	    return f->predictors_quad;
     }
+    throw std::invalid_argument("Unknown variable: " + variable_name);
 }
 
 datatypes::Grid* bvdata::Repository::get2DGridVariation(bvdata::File* f, string variable_internal_name, int time){
@@ -1256,6 +1201,7 @@ datatypes::Grid* bvdata::Repository::get2DGridVariation(bvdata::File* f, string 
 	
 	int xcells = M.nrow();
 	int ycells = M.ncol();
+        if (xcells <= 0 || ycells <= 0) throw std::invalid_argument("Empty grid");
 
 	datatypes::Grid *grid = new Grid(xcells, ycells, quad);
 	grid->setValue(0,0,M(0,0));

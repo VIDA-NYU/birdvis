@@ -31,12 +31,7 @@
 #include <vector>
 #include <GL/glew.h>
 
-#ifdef __APPLE__
-#include <GDAL/ogrsf_frmts.h>
-#else
-//#include <gdal/ogrsf_frmts.h>
 #include <ogrsf_frmts.h>
-#endif
 
 /*************
  * RegionSet *
@@ -53,6 +48,9 @@ private:
 public:
 
     RegionSet();
+    ~RegionSet();
+    RegionSet(const RegionSet&) = delete;
+    RegionSet& operator=(const RegionSet&) = delete;
 
     int size();
 

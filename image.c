@@ -1,3 +1,4 @@
+#include <FreeImage.h>
 /////////////////////////////////////////////////////////////////////////////////////
 //                                                                                 //
 // Copyright 2011-2013 NYU Polytechnic School of Engineering.                      //
@@ -36,18 +37,18 @@
 // util
 ////////////////////////////////////////////////////////////////////////////////
 
-void util_invert_buffer(byte *buffer, int n)
+void util_invert_buffer(ImageByte *buffer, int n)
 {
     int i;
     for (i=0;i<n/2;i++)
     {
-	byte aux = buffer[i];
+	ImageByte aux = buffer[i];
 	buffer[i] = buffer[n-i-1];
 	buffer[n-i-1] = aux;
     }
 }
 
-void util_invert_and_dump(byte *buffer, int n, FILE *output)
+void util_invert_and_dump(ImageByte *buffer, int n, FILE *output)
 {
     util_invert_buffer(buffer,n);
     fwrite(buffer,1,n,output);   
@@ -60,7 +61,7 @@ void util_invert_and_dump(byte *buffer, int n, FILE *output)
 Image *Image_new(int width, int height)
 {
     Image *img  = (Image *) malloc(sizeof(Image));
-    img->buffer  = (byte *) malloc(sizeof(byte) * width * height);
+    img->buffer  = (ImageByte *) malloc(sizeof(ImageByte) * width * height);
     img->width  = width;
     img->height = height;
     int i;
@@ -76,12 +77,12 @@ void Image_free(Image *img, char self)
 	free(img);
 }
 
-byte Image_get_value(Image *img, int row, int col)
+ImageByte Image_get_value(Image *img, int row, int col)
 {
     return img->buffer[row * img->width + col];
 }
 
-void Image_set_value(Image *img, int row, int col, byte value)
+void Image_set_value(Image *img, int row, int col, ImageByte value)
 {
     img->buffer[row * img->width + col] = value;
 }    
@@ -100,7 +101,7 @@ void Image_copy(Image *source, Image *target, int xoff, int yoff)
     }
 }
 
-void Image_save_as_sgi(Image *g, const char *filename, byte invert_y)
+void Image_save_as_sgi(Image *g, const char *filename, ImageByte invert_y)
 {
     int  i, j;
 
@@ -108,7 +109,7 @@ void Image_save_as_sgi(Image *g, const char *filename, byte invert_y)
     FILE *f = fopen(filename,"wb");
 
     // sgi header
-    byte buffer[512];
+    ImageByte buffer[512];
     for (i=0;i<512;i++)
 	buffer[i] = 0;
 
@@ -132,7 +133,7 @@ void Image_save_as_sgi(Image *g, const char *filename, byte invert_y)
     };
 
     int index=0;
-    byte invert=1;
+    ImageByte invert=1;
 
     *i_ptr = 474; // sgi code
     util_invert_and_dump(buffer,num_bytes[index++],f);
@@ -140,7 +141,7 @@ void Image_save_as_sgi(Image *g, const char *filename, byte invert_y)
     *i_ptr = 0; // uncompressed
     util_invert_and_dump(buffer,num_bytes[index++],f);
 
-    *i_ptr = 1; // one byte per channel
+    *i_ptr = 1; // one ImageByte per channel
     util_invert_and_dump(buffer,num_bytes[index++],f);
 
     *i_ptr = 2; // two dimensional image
@@ -194,32 +195,21 @@ void Image_save_as_sgi(Image *g, const char *filename, byte invert_y)
     fclose(f);
 }
 
-Image *Image_read_sgi(const char *filename)
-{
-    int width;
-    int height;
-    int components;
-
-    byte *rgba = (byte *) read_texture(filename, 
-				       &width, 
-				       &height, 
-				       &components);
-    
-    //
-    int i,j;
-    int offset = 1;
-    int n = width * height;
-    for (i=1;i<n;i++)
-    {
-	rgba[offset++] = rgba[4*i];
+Image *Image_read_sgi(const char *filename) {
+    FIBITMAP *bitmap = FreeImage_Load(FIF_SGI, filename, 0);
+    if (!bitmap) return NULL;
+    FIBITMAP *rgb = FreeImage_ConvertTo24Bits(bitmap);
+    FreeImage_Unload(bitmap);
+    if (!rgb) return NULL;
+    const unsigned width=FreeImage_GetWidth(rgb), height=FreeImage_GetHeight(rgb);
+    if (width==0 || height==0 || width>16384 || height>16384) {
+        FreeImage_Unload(rgb); return NULL;
     }
-    rgba = (byte*) realloc(rgba,n);
-
-    //
-    Image *img = Image_new(width,height);
-    memcpy(img->buffer,rgba,n);
-
-    free(rgba);
-
-    return img;
+    Image *image=Image_new((int)width,(int)height);
+    for (unsigned y=0;y<height;++y) {
+        const BYTE *row=FreeImage_GetScanLine(rgb,y);
+        for(unsigned x=0;x<width;++x) image->buffer[y*width+x]=row[x*3+FI_RGBA_RED];
+    }
+    FreeImage_Unload(rgb);
+    return image;
 }

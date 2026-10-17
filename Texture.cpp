@@ -40,7 +40,8 @@ Texture::Texture() :
     pitch(0),
     bitsPerPixel(0),
     bytesPerPixel(0),
-    loaded(false)
+    loaded(false),
+    texture_id(0)
 {}
 
 // Texture::Texture(GLuint texture_id, unsigned w, unsigned h, unsigned bpp)
@@ -132,6 +133,7 @@ Texture::~Texture(){
 
 GLuint
 Texture::getId(){
+    isLoaded();
     return this->texture_id;
 }
 
@@ -157,17 +159,19 @@ Texture::getBytesPerPixel(){
 
 bool     
 Texture::isLoaded(){
+    if (!sourceFilename.empty() && !gpu.valid()) {
+        const auto source=sourceFilename;
+        load(source);
+    }
     return this->loaded;
 }
 
 void     
 Texture::release(){
-    // cout << "Texture::release()" << endl;
-    if(this->isLoaded()){
-	// cout << "   releasing texture id: " << this->texture_id << endl;
-	glDeleteTextures(1, &(this->texture_id));    
-	this->loaded = false;
-    }
+    gpu.reset();
+    loaded=false;
+    texture_id=0;
+    sourceFilename.clear();
 }
 
 void 
@@ -178,6 +182,10 @@ Texture::bind(){
 void     
 Texture::load(string filename)
 {
+    release();
+    texture_id = 0;
+    gpu.acquire();
+    sourceFilename=filename;
     
     //image format
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
@@ -211,7 +219,10 @@ Texture::load(string filename)
     }
 
     // convert to RGB: 24 bits
-    dib = FreeImage_ConvertTo24Bits(dib);
+    FIBITMAP *original = dib;
+    dib = FreeImage_ConvertTo24Bits(original);
+    FreeImage_Unload(original);
+    if (!dib) return;
 
     //
     FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
@@ -234,6 +245,7 @@ Texture::load(string filename)
     //if this somehow one of these failed (they shouldn't), return failure
     if((bits == 0) || (width == 0) || (height == 0)){
 	cout << "   (WARNING) loading problem: bits == 0 or width == 0 or height == 0" << endl;
+        FreeImage_Unload(dib);
 	this->texture_id = 0;//exit(1);
 	return;
     }
@@ -333,7 +345,8 @@ Texture::load(string filename)
     // }
     
     //generate an OpenGL texture ID for this texture
-    glGenTextures(1, &this->texture_id);                               // opengl
+    glGenTextures(1, &this->texture_id);
+    gpu.texture=texture_id;                               // opengl
 
     //bind to the new texture ID
     glBindTexture(GL_TEXTURE_2D, texture_id);                          // opengl

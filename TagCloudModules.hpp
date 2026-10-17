@@ -104,8 +104,8 @@ private:
 
 public:
 
-    static const double min_scale = 1.0;
-    static const double max_scale = 4.0;
+    static constexpr double min_scale = 1.0;
+    static constexpr double max_scale = 4.0;
 
 public:
 

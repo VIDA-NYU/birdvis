@@ -390,6 +390,7 @@ public:
 public:
 
     Button(ViewRect quad, string text, long alignment);
+    void setQuad(ViewRect value) { quad=value; }
 
     void rectangleSignal(rectanglelayout::Rectangle r);
 

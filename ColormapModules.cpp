@@ -27,6 +27,9 @@
 
 // temporary (this should not be here)
 #include <QDialog>
+#include <QColorDialog>
+#include <QInputDialog>
+#include <QLineEdit>
 
 #include "ColormapModules.hpp"
 #include "RenderSystem.hpp"
@@ -830,7 +833,8 @@ ColormapController::set_colormap_stop_locations(eventsystem::State *event_state)
     }
 
     //
-    if (stops.size() >= 2)
+    if (stops.size() >= 2 && std::all_of(stops.begin(), stops.end(), [](double v) { return std::isfinite(v); })
+        && std::adjacent_find(stops.begin(), stops.end()) == stops.end())
     {
 	colormap->setStops(stops);
 	getOutputPort("colormap")->setData(new data::SingleColormap1dPtr(colormap),true);
@@ -1066,7 +1070,7 @@ ColormapController::event_mouse_drag(eventsystem::State *event_state)
 #ifdef DEBUG_COLORMAPCONTROLLER
 		    cout << "Lascou !!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 #endif
-		    exit(0);
+                    return;
 		}
 		else
 		    coefficients[i - (bound_index_left + 1)] = (currentStop->value - minStop->value)/
@@ -1081,7 +1085,7 @@ ColormapController::event_mouse_drag(eventsystem::State *event_state)
 #ifdef DEBUG_COLORMAPCONTROLLER
 		    cout << "Lascou !!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 #endif
-		    exit(0);
+                    return;
 		}
 		else
 		    coefficients[i- (bound_index_left + 1)] = (currentStop->value - pickedStop->value)/

@@ -30,26 +30,24 @@
 extern "C" {
 #endif
 
-#ifndef BYTE
-#define BYTE
-typedef unsigned char byte;
-#endif
+typedef unsigned char ImageByte;
 
 typedef struct _Image
 {
-    byte *buffer;
+    ImageByte *buffer;
     int width;
     int height;
 } Image;
 
 Image *Image_new(int width, int height);
-byte Image_get_value(Image *img, int row, int col);
-byte Image_get_value(Image *img, int row, int col);
-void Image_set_value(Image *img, int row, int col, byte value);
+void Image_free(Image *img, char self);
+ImageByte Image_get_value(Image *img, int row, int col);
+ImageByte Image_get_value(Image *img, int row, int col);
+void Image_set_value(Image *img, int row, int col, ImageByte value);
 void Image_copy(Image *source, Image *target, int xoff, int yoff);
 
 
-void Image_save_as_sgi(Image *g, const char *filename, byte invert_y);
+void Image_save_as_sgi(Image *g, const char *filename, ImageByte invert_y);
 Image *Image_read_sgi(const char *filename);
 
 #ifdef __cplusplus

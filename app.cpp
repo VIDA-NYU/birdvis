@@ -23,56 +23,59 @@
 //                                                                                 // 
 /////////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <cstdlib>
+#include "GLContext.hpp"
+#include "BirdVisApplication.hpp"
+#include <QScreen>
+#include <QSurfaceFormat>
+#include <QDir>
+#include <QFileInfo>
+#include <QDebug>
+#include <exception>
 
-#include "GLContext.hpp"    
-#include "Labeling.hpp"
-#include "Colormap1d.hpp"
-
-int 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    ////////////////////
-    int numColors = 256;
-    Colormap1d* colormap = Colormap1d::seqWhiteRedCont();
-    
-    float step = 1.0/numColors;
-
-    for(int i = 0 ; i <= numColors ; ++i)
-    {
-	Color c = colormap->getColor(i*step);
-	cout << c.r << "," << c.g << "," << c.b << endl;
+    QSurfaceFormat format;
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setVersion(2, 1);
+    format.setProfile(QSurfaceFormat::NoProfile);
+    format.setStencilBufferSize(8);
+    format.setDepthBufferSize(24);
+    format.setSamples(4);
+    QSurfaceFormat::setDefaultFormat(format);
+    if (qEnvironmentVariableIsEmpty("R_HOME"))
+        qputenv("R_HOME", BIRDVIS_R_HOME);
+    if (qEnvironmentVariableIsEmpty("R_LIBS_USER"))
+        qputenv("R_LIBS_USER", BIRDVIS_R_LIBS);
+    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+    try {
+        const QString resources = qEnvironmentVariable("BIRDVIS_RESOURCES", BIRDVIS_RESOURCE_DIR);
+        QStringList required = {"bvlogo.png", "usa_st.shp", "usa_st.shx", "usa_st.dbf",
+                                "counties.shp", "counties.shx", "counties.dbf"};
+        for (int size : {7,8,9,10,11,12,13,14,15,16,17,18,19,200}) {
+            required << QString("fonts/arial_%1.description").arg(size)
+                     << QString("fonts/arial_%1.sgi").arg(size);
+        }
+        QStringList missing;
+        for (const auto &file : required)
+            if (const QFileInfo info(QDir(resources).filePath(file));
+                !info.isFile() || !info.isReadable()) missing << file;
+        if (!missing.isEmpty()) {
+            qCritical().noquote() << "Missing BirdVis resources in" << resources
+                << "\nSet BIRDVIS_RESOURCES to the original resource directory.\n"
+                << missing.join("\n");
+            return 1;
+        }
+        BirdVisApplication app(argc, argv);
+        GLContext window;
+        window.resize(1440, 900);
+        if (window.screen()) {
+            const QSize available = window.screen()->availableGeometry().size();
+            window.resize(window.size().boundedTo(available));
+        }
+        window.show();
+        return app.exec();
+    } catch (const std::exception &error) {
+        qCritical() << "BirdVis startup failed:" << error.what();
+        return 1;
     }
-
-
-
-    ////////////
-    Labeling lbl;
-    double Q[] = {1,5,2,2.5,4,3};
-    double W[] = {0.25,0.2,0.5,0.05}; 
-    lbl.labelExtended(0,365,1,Q,6,true,W);
-    lbl.labelExtended(-105.92159271240234,
-		      259.07846069335938,
-		      1,Q,6,true,W);
-
-    // change environment R_HOME to be internal to the app folder
-    char *pathvar = getenv("R_HOME");
-    cout << "R_HOME = " << pathvar << endl;
-
-    QApplication app(argc, argv);
-
-    GLContext window;
-    window.resize(window.sizeHint());
-    
-
-    int desktopArea = QApplication::desktop()->width() *
-      QApplication::desktop()->height();
-    int widgetArea = window.width() * window.height();
-    if (((float)widgetArea / (float)desktopArea) < 0.75f)
-      window.show();
-    else
-      window.showMaximized();
-    return app.exec();
 }

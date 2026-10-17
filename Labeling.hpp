@@ -34,7 +34,6 @@ using namespace std;
 class Labeling{
 private:
 
-    int length(double *a);
     double modulo(double m, double d);
 
 public:
