@@ -1,3 +1,4 @@
+#include <cmath>
 /////////////////////////////////////////////////////////////////////////////////////
 //                                                                                 //
 // Copyright 2011-2013 NYU Polytechnic School of Engineering.                      //

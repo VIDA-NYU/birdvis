@@ -1,3 +1,4 @@
+#include "GLResource.hpp"
 /////////////////////////////////////////////////////////////////////////////////////
 //                                                                                 //
 // Copyright 2011-2013 NYU Polytechnic School of Engineering.                      //
@@ -99,6 +100,7 @@ class ScalarFieldDisplayList:
 {
 private:
 
+    GLResource gpu;
     GLuint id_list;
     GLuint id_texture;
 

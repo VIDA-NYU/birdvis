@@ -33,85 +33,58 @@
 // Font
 ///////////////////////////////////////////////////////////////////////
 
-Font *Font_load(const char *description_file, const char *texture_file)
-{
-    
-    FILE *f_descr = fopen(description_file,"rt");
-
-    if(f_descr == NULL){	
-	printf("FILE %s IS NULL\n", description_file);
+void Font_free(Font *font) {
+    if (!font) return;
+    if (font->table) {
+        for (int i=0; i<=font->max_code; ++i) free(font->table[i]);
+        free(font->table);
     }
+    if (font->texture) Image_free(font->texture, 1);
+    free(font);
+}
 
-    char str[500];
+Font *Font_load(const char *description_file, const char *texture_file) {
+    FILE *file = fopen(description_file, "rt");
+    if (!file) return NULL;
+    Font *font = (Font *)calloc(1, sizeof(Font));
+    char line[500];
     int header = 1;
-    int i;
-
-    Font *font = (Font *) malloc(sizeof(Font));
-
-    while (fgets(str, 500,f_descr) != NULL)
-    {
-	if (str[0] == '#') 
-	    continue;
-
-	if (header)
-	{
-	    sscanf(str,"%d %d %d %d %d %d %d",
-		   &font->pt_size, 
-		   &font->dpi, 
-		   &font->max_code,
-		   &font->width, 
-		   &font->height, 
-		   &font->min_px_y,
-		   &font->max_px_y,
-		   &font->margin);
-	    font->table = (Character **) 
-		calloc(sizeof(Character*) * font->max_code+1,1);
-	    /* sprintf(buffer,"#pt_size dpi max_code width height max_px_y min_px_y\n"); */
-	    header = 0;
- 	}
-
-	else // record
-	{
-	    Character *c = (Character *) calloc(sizeof(Character),1);
-	    sscanf(str,"%d %d %d %d %d %d %d %d",
-		   &c->code, 
-		   &c->xoff, 
-		   &c->yoff,
-		   &c->width, 
-		   &c->height, 
-		   &c->left,
-		   &c->top,
-		   &c->advance);
-	    /* sprintf(buffer,"#code xoff yoff glyph_width glyph_height left top advance\n"); */
-	    font->table[c->code] = c;
-	}
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0]=='#' || line[0]=='\n') continue;
+        if (header) {
+            if (sscanf(line, "%d %d %d %d %d %d %d %d", &font->pt_size, &font->dpi,
+                       &font->max_code, &font->width, &font->height,
+                       &font->min_px_y, &font->max_px_y, &font->margin)!=8
+                || font->max_code<32 || font->max_code>65535 || font->pt_size<=0
+                || font->dpi<=0 || font->width<=0 || font->height<=0) goto invalid;
+            font->table=(Character **)calloc((size_t)font->max_code+1, sizeof(Character *));
+            header=0;
+        } else {
+            Character c = {0};
+            if (sscanf(line, "%d %d %d %d %d %d %d %d", &c.code, &c.xoff, &c.yoff,
+                       &c.width, &c.height, &c.left, &c.top, &c.advance)!=8
+                || c.code<0 || c.code>font->max_code || font->table[c.code]) goto invalid;
+            font->table[c.code]=(Character *)malloc(sizeof(Character));
+            *font->table[c.code]=c;
+        }
     }
-
-    // initialize pointers on characters
-    Character *previous = NULL;
-    int num_characters = 0;
-    for (i=0;i<=font->max_code;i++)
-    {
-	Character *c = font->table[i];
-	if (c == NULL)
-	    continue;
-
-	c->next = NULL;
-	if (previous!=NULL)
-	    previous->next = c;
-	else
-	    font->first = c;
-	previous = c;
-	num_characters++;
+    if (header || !font->table[32]) goto invalid;
+    fclose(file);
+    Character *previous=NULL;
+    for (int i=0;i<=font->max_code;++i) {
+        Character *c=font->table[i];
+        if (!c) continue;
+        if (previous) previous->next=c; else font->first=c;
+        previous=c;
+        ++font->num_characters;
     }
-    font->num_characters = num_characters;
-
-    // the associated font texture
-    font->texture = Image_read_sgi(texture_file);
-    
-    //
+    font->texture=Image_read_sgi(texture_file);
+    if (!font->texture) { Font_free(font); return NULL; }
     return font;
-
+invalid:
+    fclose(file);
+    Font_free(font);
+    return NULL;
 }
 
 void Font_print_description(Font *f)

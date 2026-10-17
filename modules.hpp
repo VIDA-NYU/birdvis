@@ -32,7 +32,7 @@
 
 #include <vector>
 
-#include <QtOpenGL>
+
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/tokenizer.hpp>
@@ -106,12 +106,12 @@ namespace modules { // modules namespace
 
     public:
 	
-	const static float margin_left   = 5;
-	const static float margin_right  = 60;
-	const static float margin_bottom = 25;
-	const static float margin_top    = 20;
-	const static float handle_radius = 6;
-	const static float text_fix      = 6;
+	static constexpr float margin_left   = 5;
+	static constexpr float margin_right  = 60;
+	static constexpr float margin_bottom = 25;
+	static constexpr float margin_top    = 20;
+	static constexpr float handle_radius = 6;
+	static constexpr float text_fix      = 6;
 
 	double x_min_view;
 	double x_max_view;
@@ -286,8 +286,8 @@ namespace modules { // modules namespace
 
     public:
 
-	static const double min_scale = 1.0;
-	static const double max_scale = 4.0;
+	static constexpr double min_scale = 1.0;
+	static constexpr double max_scale = 4.0;
 
     public:
 

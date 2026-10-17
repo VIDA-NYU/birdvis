@@ -501,7 +501,7 @@ namespace dataset {
 	datatypes::ConcreteArray *getCubeGridArray(int resX, int resY){
 	    string dimName[3] = {"Time", "Longitude", "Latitude"};
 
-	    int numSamples[3] = {this->value_sets.size(), resX, resY};
+	    int numSamples[3] = {static_cast<int>(this->value_sets.size()), resX, resY};
 
 
 	    datatypes::ConcreteArray* cube = 
@@ -1026,6 +1026,7 @@ namespace dataset {
 // 	    else{
 // 		return curve_repository[key];
 // 	    }
+            return nullptr;
 	}
 
 	string buildGetCubeGridKey(int indexDataset, string variableName, int resX, int resY, string expression = "A[0]"){

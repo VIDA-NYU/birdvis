@@ -93,12 +93,12 @@ private:
 
 public:
 
-    const static float margin_left   = 5;
-    const static float margin_right  = 60;
-    const static float margin_bottom = 25;
-    const static float margin_top    = 24;
-    const static float handle_radius = 6;
-    const static float text_fix      = 6;
+    static constexpr float margin_left   = 5;
+    static constexpr float margin_right  = 60;
+    static constexpr float margin_bottom = 25;
+    static constexpr float margin_top    = 24;
+    static constexpr float handle_radius = 6;
+    static constexpr float text_fix      = 6;
 
 public:
 

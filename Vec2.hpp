@@ -140,7 +140,7 @@ public:
 	return (*this);
     }
 
-    const Vec2 & normalized() const {
+    Vec2 normalized() const {
 	return Vec2(*this) /= len();
     }
 

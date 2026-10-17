@@ -31,7 +31,8 @@
 
 #include <boost/any.hpp>
 
-#include <QtGui>
+#include <QInputDialog>
+#include <QLineEdit>
 
 #include <Util.hpp>
 
@@ -241,10 +242,14 @@ ScalarFieldDisplayList::process()
     }
     //interpolation_mode = !interpolation_mode;
 
+    if (!gpu.valid()) allocated = false;
     if (!allocated)
     {
+        gpu.acquire();
+        gpu.invalidated = [this] { allocated=false; outdated=true; };
 	id_list = glGenLists(1);
 	glGenTextures(1,&id_texture);
+        gpu.list=id_list; gpu.texture=id_texture;
 	allocated = true;
     }
 
@@ -701,14 +706,8 @@ MapLabels::MapLabels():
     this->addInputPort("var_name");
 }
 
-string dateToString(boost::gregorian::date){
-
-    string month;
-
-//     swith(date.month){
-//     case()
-//     }
-
+string dateToString(boost::gregorian::date date){
+    return boost::gregorian::to_iso_extended_string(date);
 }
 
 void 
@@ -1727,15 +1726,15 @@ Toolbar::search(int state)
     string x="";
     bool   ok;
     QString st = QInputDialog::getText(NULL,//this->parent, 
-				       "Search (e.g. Florida)",
-				       "Value", 
+				       "Search states and counties",
+				       "State, or County, State",
 				       QLineEdit::Normal,
 				       x.c_str(), 
 				       &ok);
     if (ok && !st.isEmpty())
     {
 	float x[4];
-	Global::instance()->keyword_bounds(st.toStdString(), x);
+	if (!Global::instance()->keyword_bounds(st.toStdString(), x)) return;
 	ViewRect vr(x[0],x[1],x[2],x[3]);
 	occurrence_env->mod_world_window.setWorldWindow(vr);
     }
@@ -2069,9 +2068,17 @@ void
 Toolbar::rectangleSignal(rectanglelayout::Rectangle r)
 {
     screen_window.init(r.x,r.y,r.w,r.h);
+    Button *buttons[]={btn_toggle_cursor,btn_toggle_habitat,btn_toggle_integral_curve,
+                       btn_interpolate,btn_toggle_stencil,btn_search,btn_google_maps,btn_pie_chart};
+    const float width=std::max(1.0f,(r.w-24)/2);
+    const float height=std::max(1.0f,std::min(22.0f,(r.h-40)/4));
+    for(int i=0;i<8;++i) {
+        buttons[i]->setQuad(ViewRect(8+(i%2)*(width+8),-8-(i/2+1)*height-(i/2)*8,width,height));
+        buttons[i]->font_size=std::min(13.0f,width/8.0f);
+    }
 }
 
-bool 
+bool
 Toolbar::event_mouse_contains(int x, int y)
 {
     return screen_window.contains(x,y);

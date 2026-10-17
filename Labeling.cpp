@@ -42,10 +42,6 @@ double max(double a , double b){
 	return b;
 }
 
-int Labeling::length(double *a){
-    return ( sizeof ( a ) / sizeof ( a[0] ) );
-};
-
 double Labeling::modulo(double m, double d){
     
     double result = m;

@@ -73,6 +73,7 @@ typedef struct _Font
  * Font_load
  */
 Font *Font_load(const char *description_file, const char *texture_file);
+void Font_free(Font *font);
 
 ///////////////////////////////////////////////////////////////////////
 // FontTextIterator

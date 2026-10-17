@@ -24,11 +24,14 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 #include <cmath>
+#include <stdexcept>
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
 
 #include "RenderSystem.hpp"
+#include <cmath>
+#include <stdexcept>
 //#include "TextureManager.hpp"
 
 #define DRAW_TEXT
@@ -102,6 +105,15 @@ namespace rendersystem {
     }
 
 
+    RenderSystem::~RenderSystem() {
+        for (auto *texture : font_textures) {
+            if (!texture) continue;
+            glDeleteTextures(1, &texture->texture_id);
+            Font_free(texture->font);
+            delete texture;
+        }
+    }
+
     RenderSystem::RenderSystem(string path)
     {
 #ifdef DEBUG_RENDER_SYSTEM
@@ -121,6 +133,7 @@ namespace rendersystem {
 
 	    Font *font                 = Font_load(description_filename.str().c_str(),
 						   texture_filename.str().c_str());
+	    if (!font) throw std::runtime_error("Cannot load font: " + description_filename.str());
 	    GLuint texture_id          = this->makeTexture(font->texture,4);
 	    bool nearest = false;
 	    bool mipmap  = true;
@@ -140,6 +153,7 @@ namespace rendersystem {
 
 	    Font *font              = Font_load(description_filename.str().c_str(),
 						texture_filename.str().c_str());
+	    if (!font) throw std::runtime_error("Cannot load font: " + description_filename.str());
 	    GLuint texture_id       = this->makeTexture(font->texture,0);
 
 	    bool nearest = true;
@@ -271,16 +285,28 @@ namespace rendersystem {
 
     }
 
+    void RenderSystem::pixelViewport(double x, double y, double w, double h) {
+        const int left = std::lround(x * pixelRatio), bottom = std::lround(y * pixelRatio);
+        glViewport(left, bottom, std::max(0, int(std::lround((x+w)*pixelRatio))-left),
+                   std::max(0, int(std::lround((y+h)*pixelRatio))-bottom));
+    }
+
+    void RenderSystem::pixelScissor(double x, double y, double w, double h) {
+        const int left = std::lround(x * pixelRatio), bottom = std::lround(y * pixelRatio);
+        glScissor(left, bottom, std::max(0, int(std::lround((x+w)*pixelRatio))-left),
+                  std::max(0, int(std::lround((y+h)*pixelRatio))-bottom));
+    }
+
     void 
     RenderSystem::startViewport(float x, float y, float w, float h,
 				bool scissor, bool blend)
     {
-	glViewport(x,y,w,h);
+	pixelViewport(x,y,w,h);
     
 	//
 	if (scissor)
 	{
-	    glScissor((int)x,(int)y,(int)w,(int)h);
+	    pixelScissor(x,y,w,h);
 	    glEnable(GL_SCISSOR_TEST);		
 	}
     
@@ -309,16 +335,16 @@ namespace rendersystem {
 				bool blend)
     {
 
-	glViewport(screen_window_rect.x,
+	pixelViewport(screen_window_rect.x,
 		   screen_window_rect.y,
 		   screen_window_rect.w,
 		   screen_window_rect.h);
     
 	//
-	glScissor((int)scissor_window_rect.x,
-		  (int)scissor_window_rect.y,
-		  (int)scissor_window_rect.w,
-		  (int)scissor_window_rect.h);
+	pixelScissor(scissor_window_rect.x,
+		  scissor_window_rect.y,
+		  scissor_window_rect.w,
+		  scissor_window_rect.h);
 	glEnable(GL_SCISSOR_TEST);		
     
 	// prepare right aspect ratio
@@ -375,12 +401,12 @@ namespace rendersystem {
 	bool scissor, bool blend)
     {
 
-	glViewport(sw_x,sw_y,sw_w,sw_h);
+	pixelViewport(sw_x,sw_y,sw_w,sw_h);
     
 	//
 	if (scissor)
 	{
-	    glScissor((int)sw_x,(int)sw_y,(int)sw_w,(int)sw_h);
+	    pixelScissor(sw_x,sw_y,sw_w,sw_h);
 	    glEnable(GL_SCISSOR_TEST);		
 	}
     
@@ -560,14 +586,14 @@ namespace rendersystem {
 
 	GLuint texture;
 
-	// creat an rgba texture for the single byte texture
+	// creat an rgba texture for the single ImageByte texture
 	int i;
 	int w = img->width;
 	int h = img->height;
-	byte *rgba = (byte *) malloc(sizeof(byte) * 4 * w * h);
+	ImageByte *rgba = (ImageByte *) malloc(sizeof(ImageByte) * 4 * w * h);
 	for (i=0;i<w*h;i++)
 	{
-	    byte value = img->buffer[i];
+	    ImageByte value = img->buffer[i];
 	    rgba[4*i] = 255;
 	    rgba[4*i+1] = 255;
 	    rgba[4*i+2] = 255;

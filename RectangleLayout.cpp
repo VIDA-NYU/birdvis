@@ -73,6 +73,7 @@ namespace rectanglelayout {
 	     <<", y: " << r.y 
 	     <<", w: " << r.w 
 	     <<", h: " << r.h << ")";
+        return strm;
     }
 
 
@@ -101,6 +102,7 @@ namespace rectanglelayout {
     operator<<(ostream& strm, const Index& index) 
     {
 	strm << "Index: [" << index.x <<", " << index.y <<"]";
+        return strm;
     }
 
     /********
@@ -385,7 +387,7 @@ namespace rectanglelayout {
 		 << " (index_on_parent: " << idx << ", parent: ["
 		 << grid.getParent() << "])   [" 
 		 << &grid << "]";
-
+            return strm;
 	}
     }
 
@@ -722,6 +724,7 @@ namespace rectanglelayout {
 	    strm << " ";
 	strm << "Item (node: " << item.node << ", linear_index: " 
 	     << item.linear_index << ")";
+        return strm;
     }
 
     /*****************************

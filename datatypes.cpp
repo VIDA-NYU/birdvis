@@ -223,7 +223,7 @@ Curve* Predictor::getCurveSel(selection::Selection *sel){
     color[3] = 1.0;
 
     Curve* curve = new Curve(array, color);
-
+    return curve;
 }
 
 // class ViewRect

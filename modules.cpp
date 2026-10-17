@@ -1,3 +1,5 @@
+#include <QDesktopServices>
+#include <QUrl>
 /////////////////////////////////////////////////////////////////////////////////////
 //                                                                                 //
 // Copyright 2011-2013 NYU Polytechnic School of Engineering.                      //
@@ -1119,7 +1121,7 @@ namespace modules { // modules namespace
 	// 	glViewport(px,py,pw,ph);
     
 	// 	//
-	// 	glScissor((int)px,(int)py,(int)pw,(int)ph);
+	// 	Global::instance()->getRenderSystem()->pixelScissor(px,py,pw,ph);
 	// 	glEnable(GL_SCISSOR_TEST);		
 
 	// 	// prepare right aspect ratio
@@ -1144,10 +1146,10 @@ namespace modules { // modules namespace
 	    float pw = screen_window.w;
 	    float ph = screen_window.h;
 	    int side = std::max(pw,ph);
-	    glViewport((int)(px + (pw - side) / 2), (int)(py + (ph - side) / 2), side, side);
+	    Global::instance()->getRenderSystem()->pixelViewport(px + (pw - side) / 2, py + (ph - side) / 2, side, side);
     
 	    //
-	    glScissor((int)px,(int)py,(int)pw,(int)ph);
+	    Global::instance()->getRenderSystem()->pixelScissor(px,py,pw,ph);
 	    glEnable(GL_SCISSOR_TEST);		
 
 	    // prepare right aspect ratio
@@ -1641,16 +1643,8 @@ namespace modules { // modules namespace
 	double lonspan = ww.w;
 	double latspan = ww.h;
 
-#ifdef __APPLE__
-	char url_template[]="open \"http://maps.google.com/maps?q=BirdVis@%f,%f&ll=%f,%f&spn=%f,%f\"";
-#else
-	char url_template[]="firefox \"http://maps.google.com/maps?q=BirdVis@%f,%f&ll=%f,%f&spn=%f,%f\"";
-#endif
-
-	char url_instance[200];
-	sprintf(url_instance,url_template,lat,lon,lat,lon,latspan,lonspan);
-	cout << url_instance << endl;
-	system(url_instance);
+        QDesktopServices::openUrl(QUrl(QString("https://www.google.com/maps?q=%1,%2")
+            .arg(lat,0,'f',6).arg(lon,0,'f',6)));
     }
 
 

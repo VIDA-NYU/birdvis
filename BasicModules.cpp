@@ -43,7 +43,7 @@ using namespace rendersystem;
  *******************/
 
 OffsetModule::OffsetModule():
-    Module("OffsetModule")
+    Module("OffsetModule"), int_offset(0), int_order(1)
 {
     addInputPort("input_int");
     addOutputPort("output_int");
@@ -87,7 +87,7 @@ OffsetModule::setOrder(int order)
 #endif
     
 
-    int_order = order;
+    int_order = std::max(1, order);
     outdated = true;
 }
 
@@ -110,7 +110,7 @@ OffsetModule::process()
     cout << "   offset      = " << int_offset << endl;
 #endif
     getOutputPort("output_int")->setData
-	(new data::SingleInt( (input_int + int_offset) % int_order  ),true);
+	(new data::SingleInt( ((input_int + int_offset) % int_order + int_order) % int_order  ),true);
 }
 
 /*************
@@ -673,6 +673,7 @@ SelectionRepository::deleteSelection(Selection *sel)
     it = find(selections.begin(),selections.end(),sel);
     if (it != selections.end())
 	selections.erase(it);
+    return sel;
 }
 
 void 

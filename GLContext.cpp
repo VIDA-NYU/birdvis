@@ -25,8 +25,14 @@
 
 #include <GL/glew.h>
 
-#include <QtGui>
-#include <QtOpenGL>
+#include <QApplication>
+#include <QDir>
+#include <QMouseEvent>
+#include <QWheelEvent>
+#include <QKeyEvent>
+#include <QTimer>
+#include <QDebug>
+#include <stdexcept>
 
 #include <iostream>
 
@@ -42,13 +48,14 @@
 using namespace std;
 
 GLContext::GLContext(QWidget *parent):
-    QGLWidget(QGLFormat(QGL::StencilBuffer | QGL::SampleBuffers), parent)
+    QOpenGLWidget(parent)
 {
     cout << "GLContext::GLContext(...)" << endl;
 
-    setWindowTitle(tr("BirdVis   2011.06.16"));
+    setWindowTitle(tr("BirdVis"));
+    setFocusPolicy(Qt::StrongFocus);
 
-    if (!format().stencil())
+    if (format().stencilBufferSize() <= 0)
 	qWarning("Could not get stencil buffer; results will be suboptimal");
     else 
 	cout << "   stencil works" << endl;
@@ -72,6 +79,16 @@ GLContext::GLContext(QWidget *parent):
 
 GLContext::~GLContext()
 {
+    if(context()) disconnect(context(),nullptr,this,nullptr);
+    cleanupGL();
+}
+
+void GLContext::cleanupGL() {
+    if(!ready) return;
+    makeCurrent();
+    Global::instance()->releaseGLResources();
+    ready=false;
+    doneCurrent();
 }
 
 
@@ -92,6 +109,7 @@ GLContext::sizeHint() const
 void 
 GLContext::initializeGL() 
 {
+    try {
     // initialize GLEW to allow FBO (offscreen rendering on frame buffer objects)
     GLenum err = glewInit();
     if (GLEW_OK != err)
@@ -99,6 +117,10 @@ GLContext::initializeGL()
 	/* Problem: glewInit failed, something is seriously wrong. */
 	fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
     }
+    if(err!=GLEW_OK || !GLEW_EXT_framebuffer_object || format().stencilBufferSize()<8)
+        throw std::runtime_error("BirdVis requires desktop OpenGL 2.1 with framebuffer objects and an 8-bit stencil buffer");
+    while(glGetError()!=GL_NO_ERROR) {}
+    connect(context(),&QOpenGLContext::aboutToBeDestroyed,this,&GLContext::cleanupGL,Qt::DirectConnection);
     fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 
@@ -107,9 +129,7 @@ GLContext::initializeGL()
 
     cout << "GLContext::initializeGL()" << endl;
 
-    string path = \
-	string(QApplication::applicationDirPath().toStdString()+"/../Resources/");
-
+    string path = QDir(qEnvironmentVariable("BIRDVIS_RESOURCES", BIRDVIS_RESOURCE_DIR)).absolutePath().toStdString() + "/";
 
     cout << "   path: " << path << endl;
     cout << "   initializing render system...";
@@ -126,6 +146,9 @@ GLContext::initializeGL()
     // this->setAutoFillBackground(false);
 
 
+    ready=true;
+    if(uiInstalled) return;
+    uiInstalled=true;
     { // install files view
 
 	bvdata::Repository* repo = Global::instance()->getRepository();
@@ -172,8 +195,7 @@ GLContext::initializeGL()
     // spreadsheet->emitRectangleLayoutSignals();
 
 
-    this->resize(1440, 900);
-    this->move(2,2);
+
 
     // 	// string names[] = {  "Elevation", 
     // 	// 		    "Open Water" , 
@@ -252,14 +274,27 @@ GLContext::initializeGL()
     // spreadsheet->clear();
 
 
+    } catch(const std::exception &error) {
+        ready=false;
+        qCritical() << "BirdVis graphics initialization failed:" << error.what();
+        QTimer::singleShot(0,qApp,[]{ QCoreApplication::exit(1); });
+    }
+
 }
 
 
 void 
 GLContext::paintGL()
 {
+    if(!ready) return;
     // cout << "GLContext::paintGL()" << endl;
 
+    Global::instance()->getRenderSystem()->setPixelRatio(devicePixelRatioF());
+    glDisable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glStencilMask(~0u);
+    glClearColor(1, 1, 1, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     // render spreadsheet
     spreadsheet->render();
 
@@ -311,59 +346,63 @@ void
 GLContext::resizeGL(int width, int height)
 {
     spreadsheet->resize(0,0,this->width(), this->height());
-    this->repaint();
+    this->update();
 
     // canvas->resize_screen(this->width(), this->height());
-    // this->repaint();
+    // this->update();
 } 
 
 void 
 GLContext::mousePressEvent(QMouseEvent *event)
 {
+    makeCurrent();
     { // mouse manager stuff
 	
     	bool shift = (event->modifiers() & Qt::ShiftModifier);
     	bool alt   = (event->modifiers() & Qt::AltModifier);
     	bool ctrl  = (event->modifiers() & Qt::ControlModifier);
 
-    	int x = event->x();
-    	int y = this->height() - event->y();
+        int x = event->position().x();
+        int y = this->height() - event->position().y();
 
     	eventsystem::Button b = eventsystem::NONE;
     	if (event->button() == Qt::LeftButton)
     	    b = eventsystem::LEFT;
     	if (event->button() == Qt::RightButton)
     	    b = eventsystem::RIGHT;
-    	if (event->button() == Qt::MidButton)
+        if (event->button() == Qt::MiddleButton)
     	    b = eventsystem::MID;
 
+        event_manager->mouse_move(x,y);
     	event_manager->mouse_press(x,y,b,shift,ctrl,alt);
 
     } // mouse manager stuff
     
-    this->repaint();
+    this->update();
 }
 
 void 
 GLContext::mouseMoveEvent(QMouseEvent *event)
 {
+    makeCurrent();
 
     { // mouse manager stuff
 	
-    	int x = event->x();
-    	int y = this->height() - event->y();
+        int x = event->position().x();
+        int y = this->height() - event->position().y();
 
     	event_manager->mouse_move(x,y);
 
     } // mouse manager stuff
 
-    this->repaint();
+    this->update();
 
 }
 
 void 
 GLContext::mouseReleaseEvent(QMouseEvent *event)
 {
+    makeCurrent();
 
     { // mouse manager stuff
 	
@@ -371,43 +410,50 @@ GLContext::mouseReleaseEvent(QMouseEvent *event)
     	bool alt   = (event->modifiers() & Qt::AltModifier);
     	bool ctrl  = (event->modifiers() & Qt::ControlModifier);
 
-    	int x = event->x();
-    	int y = this->height() - event->y();
+        int x = event->position().x();
+        int y = this->height() - event->position().y();
 
     	eventsystem::Button b = eventsystem::NONE;
     	if (event->button() == Qt::LeftButton)
     	    b = eventsystem::LEFT;
     	if (event->button() == Qt::RightButton)
     	    b = eventsystem::RIGHT;
-    	if (event->button() == Qt::MidButton)
+        if (event->button() == Qt::MiddleButton)
     	    b = eventsystem::MID;
 
+        event_manager->mouse_move(x,y);
     	event_manager->mouse_release(x,y,b,shift,ctrl,alt);
 
     } // mouse manager stuff
 
 
     // this->selectionMode = false;
-    this->repaint();
+    this->update();
 
 }
 
 void 
 GLContext::wheelEvent(QWheelEvent *event)
 {
+    makeCurrent();
     { // mouse manager stuff
 	
-    	event_manager->mouse_wheel(event->delta(),event->delta());
+        // Legacy controllers use dx for zoom and dy for scrolling.
+        event_manager->mouse_move(event->position().x(), height()-event->position().y());
+        const QPoint delta = event->angleDelta().isNull() ? event->pixelDelta() : event->angleDelta();
+        const int step = delta.y() != 0 ? delta.y() : delta.x();
+        if (step != 0) event_manager->mouse_wheel(step, step);
 
     } // mouse manager stuff
 
-    this->repaint();
+    this->update();
 
 }
 
 void 
 GLContext::keyPressEvent(QKeyEvent *event)
 {
+    makeCurrent();
 
     // cout << "---------------------------- Qt Keyboard event" << endl;
 
@@ -423,6 +469,6 @@ GLContext::keyPressEvent(QKeyEvent *event)
 
     } // end event manager
 
-    this->repaint();
+    this->update();
 
 }

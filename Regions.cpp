@@ -29,6 +29,8 @@
 
 #include <iostream>
 #include <sstream>
+#include <memory>
+#include <stdexcept>
 
 using namespace std;
 
@@ -39,6 +41,9 @@ using namespace std;
  *************/
 
 RegionSet::RegionSet() {};
+RegionSet::~RegionSet() {
+    for (auto *geometry : regions) OGRGeometryFactory::destroyGeometry(geometry);
+}
 
 int 
 RegionSet::size() 
@@ -64,23 +69,25 @@ RegionSet::addRegionsFromFile(string filename, string layer_name, int fields)
 
     RegionSet *result = this;
 
-    OGRRegisterAll();
-    OGRDataSource       *poDS;
-    poDS = OGRSFDriverRegistrar::Open(filename.c_str(), FALSE );
+    GDALAllRegister();
+    std::unique_ptr<GDALDataset, decltype(&GDALClose)> poDS(
+        static_cast<GDALDataset*>(GDALOpenEx(filename.c_str(), GDAL_OF_VECTOR | GDAL_OF_READONLY,
+                                           nullptr, nullptr, nullptr)), GDALClose);
     if( poDS == NULL )
     {
-        printf("Open failed. (%s)\n",filename.c_str());
-        exit( 1 );
+        throw std::runtime_error("Cannot open map: " + filename);
     }
     OGRLayer  *poLayer;
     poLayer = poDS->GetLayerByName(layer_name.c_str());
 
+    if (!poLayer) throw std::runtime_error("Missing map layer: " + layer_name);
     OGRFeature *poFeature;
     poLayer->ResetReading();
 
     // create list of geometries
     while( (poFeature = poLayer->GetNextFeature()) != NULL )
     {
+        std::unique_ptr<OGRFeature, decltype(&OGRFeature::DestroyFeature)> feature(poFeature, OGRFeature::DestroyFeature);
 	stringstream name;
 	bool added = false;
 	if (fields & (1 << 0)) {
@@ -119,7 +126,7 @@ RegionSet::addRegionsFromFile(string filename, string layer_name, int fields)
 
 
 	// we know the field 1 is always the name of the region...
-	result->regions.push_back(poFeature->GetGeometryRef());
+	result->regions.push_back(poFeature->GetGeometryRef() ? poFeature->GetGeometryRef()->clone() : nullptr);
 
     }
     // OGRDataSource::DestroyDataSource( poDS );

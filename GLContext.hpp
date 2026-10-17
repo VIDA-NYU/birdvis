@@ -28,13 +28,13 @@
 
 #include <GL/glew.h>
 
-#include <QGLWidget>
+#include <QOpenGLWidget>
 
 #include "EventSystem.hpp"
 
 #include "Spreadsheet.hpp"
 
-class GLContext : public QGLWidget
+class GLContext : public QOpenGLWidget
 {
     Q_OBJECT
 
@@ -73,6 +73,9 @@ protected:
 
 private:
 
+    bool ready = false;
+    bool uiInstalled = false;
+    void cleanupGL();
     Spreadsheet *spreadsheet;
 
     eventsystem::Manager *event_manager;

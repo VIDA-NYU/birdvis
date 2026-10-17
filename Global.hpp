@@ -45,8 +45,8 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 
 
-#include <QtGui>
-#include <QWidget>
+
+#include <QOpenGLWidget>
 
 using namespace boost::gregorian;
 
@@ -103,22 +103,23 @@ public:
     bvdata::Repository              *repository;
 
 public:
-    QWidget *main_widget;
+    QOpenGLWidget *main_widget = nullptr;
 
     // GDAL files describing the boundaries of states and counties
     RegionSet                       *usa_states;
     RegionSet                       *usa_counties;
 
     // some installed opengl call lists
-    GLuint                           usa_states_gl_list;
-    GLuint                           usa_counties_gl_list;
-    GLuint                           usa_area_gl_list;
+    GLuint                           usa_states_gl_list = 0;
+    GLuint                           usa_counties_gl_list = 0;
+    GLuint                           usa_area_gl_list = 0;
 
     Texture*                         bv_logo;
 
 public:
 
     static Global*               instance();
+    void releaseGLResources();
 
     // ViewRect                     xy_ranges();
 
@@ -132,7 +133,7 @@ public:
 
     string                       getRegionName(double lon, double lat);
 
-    void                         keyword_bounds(string keywords, float *xywh);
+    bool                         keyword_bounds(string keywords, float *xywh);
 
     void                         open_google_maps_link(ViewRect ww);
 

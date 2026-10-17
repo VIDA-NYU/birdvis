@@ -61,6 +61,7 @@ namespace rendersystem {
 	    void endTexture();
 	};
     private:
+        double pixelRatio = 1.0;
 
 	FontTexture*  font_textures[256];
 	FontTexture*  default_font_texture;
@@ -77,6 +78,10 @@ namespace rendersystem {
     public:
 
 	RenderSystem(string path);
+        ~RenderSystem();
+        void setPixelRatio(double ratio) { pixelRatio = ratio; }
+        void pixelViewport(double x, double y, double w, double h);
+        void pixelScissor(double x, double y, double w, double h);
 
 	void drawText(const char *text, float text_size, 
 		      float text_x0, float text_y0);
