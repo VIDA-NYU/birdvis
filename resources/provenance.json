@@ -172,6 +172,29 @@
       "path": "fonts/arial_200.sgi",
       "bytes": 8976528,
       "sha256": "9779d52155c4c745dfb35a2a8df200804aea7b0f755399ad69080883d9e98bf3"
+    },
+    {
+      "path": "birdvis_logo.icns",
+      "source_name": "birdvis_logo.icns",
+      "bytes": 131513,
+      "sha256": "6f41fb19a6ac3d885ebed5b660ec3d28ff20e936e532432489186ab37be94c3d"
+    },
+    {
+      "path": "../docs/legacy/help-2011.svg",
+      "source_name": "help2.svg",
+      "bytes": 297287,
+      "sha256": "2c92a7e41da415d1872d552a231020d2c4e316cb42c6cf388c1db1d4f466b7cf"
+    }
+  ],
+  "derived": [
+    {
+      "path": "help.svg",
+      "note": "rewritten 2026-10-17 to match current key/mouse handlers; the 2011 sheet is docs/legacy/help-2011.svg"
+    },
+    {
+      "path": "help.png",
+      "from": "help.svg",
+      "method": "rsvg-convert -w 2400"
     }
   ]
 }

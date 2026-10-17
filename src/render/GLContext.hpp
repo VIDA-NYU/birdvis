@@ -75,6 +75,7 @@ private:
 
     bool ready = false;
     bool uiInstalled = false;
+    bool helpVisible = false;
     void cleanupGL();
     Spreadsheet *spreadsheet;
 

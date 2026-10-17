@@ -100,6 +100,8 @@ Global::Global()
     // keep texture of logo in GL memory
     this->bv_logo = new Texture();
     this->bv_logo->load(QDir(qEnvironmentVariable("BIRDVIS_RESOURCES", BIRDVIS_RESOURCE_DIR)).filePath("bvlogo.png").toStdString());
+    this->bv_help = new Texture();
+    this->bv_help->load(QDir(qEnvironmentVariable("BIRDVIS_RESOURCES", BIRDVIS_RESOURCE_DIR)).filePath("help.png").toStdString());
     // this->bv_logo->load("birdvis.app/Contents/Resources/logo.jpg");
     // this->bv_logo->load("birdvis.app/Contents/Resources/x.png");
 }

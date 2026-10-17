@@ -95,6 +95,10 @@ checked there.
 - Over a colormap, Tab changes the palette, `X` edits stop values using an R
   expression, and Space over a handle opens the color dialog. Handles can be
   dragged.
+- `H` (or the Help key) shows the key and mouse reference sheet; any key or click
+  dismisses it. The sheet (`resources/help.svg`, rendered to `help.png`) was
+  rewritten to match the current handlers; the 2011 original is kept in
+  `docs/legacy/help-2011.svg`.
 - Search accepts a state (`Florida`) or county and state (`Graham, Kansas`).
   It uses the original local boundaries. The obsolete online city-geocoding
   service is not used. Map links and auxiliary images open through the desktop.
@@ -131,6 +135,9 @@ State/county shapefiles and font atlases were recovered from
 `/Users/csilva/birdvis_06_16_2011/birdvis.app/Contents/Resources`. Source paths and
 SHA-256 checksums are in [resources/provenance.json](resources/provenance.json).
 The 28 font description/SGI files match the accompanying `fonts.zip` exactly.
+The app icon (`birdvis_logo.icns`) and original help sheet (`docs/legacy/help-2011.svg`) come
+from the same bundle. `docs/legacy/bvwf.py` is a sample of the dataflow description the
+old build wrote when `W` was pressed; it is kept for reference only.
 The original map geometries were preserved because they affect area estimates.
 
 All datasets contain 52 weekly dates from January 5 through December 28, 2009.

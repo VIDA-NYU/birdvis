@@ -28,6 +28,7 @@
 #include <QScreen>
 #include <QSurfaceFormat>
 #include <QDir>
+#include <QIcon>
 #include <QFileInfo>
 #include <QDebug>
 #include <exception>
@@ -66,6 +67,7 @@ int main(int argc, char *argv[])
             return 1;
         }
         BirdVisApplication app(argc, argv);
+        app.setWindowIcon(QIcon(QDir(resources).filePath("birdvis_logo.icns")));
         GLContext window;
         window.resize(1440, 900);
         if (window.screen()) {

@@ -37,6 +37,7 @@
 #include <iostream>
 
 #include "Global.hpp"
+#include "Util.hpp"
 
 #include "GLContext.hpp"
 
@@ -323,6 +324,18 @@ GLContext::paintGL()
 
     event_manager->event_render();
 
+    if(helpVisible){
+	Texture *help = Global::instance()->bv_help;
+	if(help && help->isLoaded()){
+	    renderSystem->setColor(0.0,0.0,0.0);
+	    renderSystem->drawQuad(0,0,this->width(),this->height());
+	    float x,y,w,h;
+	    util::computeMaxAndCenteredRectanglePreservingAspectRatio(
+		help->getWidth(), help->getHeight(), 0, 0, this->width(), this->height(), x, y, w, h);
+	    renderSystem->drawQuadWithTexture(x,y,w,h,help->getId());
+	}
+    }
+
     renderSystem->endViewport();
    
 
@@ -356,6 +369,7 @@ void
 GLContext::mousePressEvent(QMouseEvent *event)
 {
     makeCurrent();
+    if(helpVisible){ helpVisible = false; this->update(); return; }
     { // mouse manager stuff
 	
     	bool shift = (event->modifiers() & Qt::ShiftModifier);
@@ -455,7 +469,12 @@ GLContext::keyPressEvent(QKeyEvent *event)
 {
     makeCurrent();
 
-    // cout << "---------------------------- Qt Keyboard event" << endl;
+    // H toggles the help overlay; any key dismisses it
+    if(helpVisible || event->key() == Qt::Key_H || event->key() == Qt::Key_Help){
+	helpVisible = !helpVisible;
+	this->update();
+	return;
+    }
 
     { // event manager
 
