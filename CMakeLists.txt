@@ -13,50 +13,50 @@ find_path(FREEIMAGE_INCLUDE_DIR FreeImage.h REQUIRED)
 find_library(FREEIMAGE_LIBRARY NAMES freeimage REQUIRED)
 include(cmake/FindEmbeddedR.cmake)
 add_library(birdvis_core STATIC
-    AreaEstimator.cpp
-    Array.cpp
-    Curve.cpp
-    DataSet.cpp
-    Dataflow.cpp
-    DataflowTypes.cpp
-    GLContext.cpp
-    Global.cpp
-    Labeling.cpp
-    RectangleLayout.cpp
-    Spreadsheet.cpp
-    Environment.cpp
-    SimpleEnvironment.cpp
-    Matrix.cpp
-    Vector.cpp
-    ColormapModules.cpp
-    BasicModules.cpp
-    modules.cpp
-    Rotation.cpp
-    Regions.cpp
-    PlotModules.cpp
-    EventSystem.cpp
-    Locations.cpp
-    MeasureSet.cpp
-    RenderSystem.cpp
-    Species.cpp
-    TagCloudModules.cpp
-    Tokenizer.cpp
-    View.cpp
-    Color.cpp
-    ViewRect.cpp
-    Colormap1d.cpp
-    gl_util.cpp
-    bvdata.cpp
-    csv2grid.cpp
-    datatypes.cpp
-    Texture.cpp
-    font.c
-    image.c
-    readrgb.c
-    Triangulator.cpp
-    Util.cpp
+    src/data/AreaEstimator.cpp
+    src/math/Array.cpp
+    src/math/Curve.cpp
+    src/data/DataSet.cpp
+    src/dataflow/Dataflow.cpp
+    src/dataflow/DataflowTypes.cpp
+    src/render/GLContext.cpp
+    src/data/Global.cpp
+    src/render/Labeling.cpp
+    src/ui/RectangleLayout.cpp
+    src/ui/Spreadsheet.cpp
+    src/env/Environment.cpp
+    src/env/SimpleEnvironment.cpp
+    src/math/Matrix.cpp
+    src/math/Vector.cpp
+    src/modules/ColormapModules.cpp
+    src/modules/BasicModules.cpp
+    src/modules/modules.cpp
+    src/math/Rotation.cpp
+    src/data/Regions.cpp
+    src/modules/PlotModules.cpp
+    src/ui/EventSystem.cpp
+    src/data/Locations.cpp
+    src/data/MeasureSet.cpp
+    src/render/RenderSystem.cpp
+    src/data/Species.cpp
+    src/modules/TagCloudModules.cpp
+    src/math/Tokenizer.cpp
+    src/ui/View.cpp
+    src/math/Color.cpp
+    src/ui/ViewRect.cpp
+    src/math/Colormap1d.cpp
+    src/render/gl_util.cpp
+    src/data/bvdata.cpp
+    src/data/csv2grid.cpp
+    src/data/datatypes.cpp
+    src/render/Texture.cpp
+    src/render/font.c
+    src/render/image.c
+    src/render/readrgb.c
+    src/render/Triangulator.cpp
+    src/math/Util.cpp
 )
-target_include_directories(birdvis_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${FREEIMAGE_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+target_include_directories(birdvis_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/app ${CMAKE_CURRENT_SOURCE_DIR}/src/data ${CMAKE_CURRENT_SOURCE_DIR}/src/dataflow ${CMAKE_CURRENT_SOURCE_DIR}/src/env ${CMAKE_CURRENT_SOURCE_DIR}/src/math ${CMAKE_CURRENT_SOURCE_DIR}/src/modules ${CMAKE_CURRENT_SOURCE_DIR}/src/render ${CMAKE_CURRENT_SOURCE_DIR}/src/ui ${FREEIMAGE_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 target_link_libraries(birdvis_core PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets
     OpenGL::GL OpenGL::GLU GLEW::GLEW GDAL::GDAL ${FREEIMAGE_LIBRARY} EmbeddedR)
 target_compile_definitions(birdvis_core PUBLIC GL_SILENCE_DEPRECATION
@@ -65,7 +65,7 @@ target_compile_definitions(birdvis_core PUBLIC GL_SILENCE_DEPRECATION
     BIRDVIS_R_HOME="${R_HOME}"
     BIRDVIS_R_LIBS="${R_PACKAGE_LIBRARIES}"
     BIRDVIS_IMAGE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/images")
-add_executable(birdvis app.cpp)
+add_executable(birdvis src/app/app.cpp)
 target_link_libraries(birdvis PRIVATE birdvis_core)
 if(BUILD_TESTING)
     add_test(NAME missing_resources COMMAND ${CMAKE_COMMAND}

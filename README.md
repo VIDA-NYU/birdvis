@@ -49,7 +49,14 @@ nine files.
 
 This is a development build, not a relocatable macOS application bundle.
 Linux builds, signed distribution, and bundled R have not been verified.
-`birdvis.pro` describes the historical Qt4 build and is not used by CMake.
+
+## Source layout
+
+- `src/app` entry point; `src/env` the three workflows (single, multi-species, variation)
+- `src/dataflow` module graph; `src/modules` its concrete modules
+- `src/data` datasets, R access, regions, area estimation; `src/render` OpenGL, fonts, textures
+- `src/ui` events and layout; `src/math` vectors, colors, colormaps, utilities
+- `tests/`, `docs/`, `cmake/`, plus `data/`, `resources/` and `images/` at runtime
 
 ## Using the interface
 
