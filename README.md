@@ -1,3 +1,6 @@
+<p align="center"><img src="resources/bvlogo.png" width="200" alt="BirdVis"></p>
+<p align="center"><img src="resources/vida-logo.jpg" width="220" alt="VIDA: Visualization Imaging and Data Analysis Center"></p>
+
 # BirdVis
 
 Bird-distribution visualization, ported to Qt6/C++17 while retaining the legacy
