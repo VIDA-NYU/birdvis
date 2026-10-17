@@ -47,8 +47,30 @@ another working directory works. Override these with `BIRDVIS_DATA`,
 the 11 files under `data/BVdata_sotb_experiments/` appear alongside the original
 nine files.
 
-This is a development build, not a relocatable macOS application bundle.
-Linux builds, signed distribution, and bundled R have not been verified.
+This is a development build, not a relocatable application bundle. Signed
+distribution and bundled R have not been verified.
+
+### Linux
+
+The build also compiles and passes the headless tests on Linux (Ubuntu 24.04,
+GCC 13.3, CMake 3.28, Qt 6.4.2, R 4.3 from apt, GDAL 3.8.4, GLEW 2.2.0), with no
+source changes. On Ubuntu/Debian, install the dependencies from apt, including the
+R packages, so no project-local R library is needed:
+
+```sh
+sudo apt install build-essential cmake qt6-base-dev qt6-base-dev-tools libqt6opengl6-dev \
+    libgl-dev libglu1-mesa-dev libglew-dev libgdal-dev libboost-dev libfreeimage-dev \
+    r-base-dev r-cran-rcpp r-cran-rinside
+cmake -S . -B build
+cmake --build build -j"$(nproc)"
+QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
+./build/birdvis
+```
+
+CMake prints a harmless "Could NOT find XKB" note from Qt's configuration. The GUI
+(`birdvis`, `gl_probe`, `native_check`) has not yet been run on Linux because the
+test machine had no display; only the build and the four headless CTests were
+checked there.
 
 ## Source layout
 

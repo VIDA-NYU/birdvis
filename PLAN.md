@@ -1,9 +1,10 @@
 # BirdVis Qt6 migration
 
-Updated: 2026-10-17. Status: **complete for the macOS development build.** The Qt4
+Updated: 2026-10-17. Status: **complete for the macOS development build; the Linux
+build compiles and passes the headless tests.** The Qt4
 application now builds with CMake/C++17 against Qt6, keeps the legacy OpenGL renderer
-and embedded R calculations, and loads all 20 supplied datasets. Packaging, other
-platforms and physical-input testing remain out of scope (see
+and embedded R calculations, and loads all 20 supplied datasets. Packaging, GUI
+testing on Linux and physical-input testing remain out of scope (see
 [Limits and open work](#limits-and-open-work)).
 
 Baseline: BirdVis `cca0a66`. Comparison project: `/Users/csilva/src/taxivis`, whose
@@ -68,7 +69,7 @@ layout and test structure. Merged through PRs #1 (port) and #2 (source layout).
 | ID | Status | Decision |
 | --- | --- | --- |
 | D01 | Done | Port directly to Qt6 (no intermediate Qt5 branch). |
-| D02 | Accepted | Target macOS first; claim Linux only after testing it. |
+| D02 | Accepted | Target macOS first; claim Linux only after testing it. Linux now builds and passes the headless tests; GUI untested. |
 | D03 | Done | CMake/C++17 with a core library plus CTest targets. |
 | D04 | Done | Preserve legacy desktop OpenGL; defer core profile/Metal/shaders. |
 | D05 | Done | Preserve R/dataflow and dataset semantics; defer async execution. |
@@ -102,9 +103,20 @@ ctest --test-dir build --output-on-failure        # headless, 4 tests
 - Re-run after the `src/` reorganization on 2026-10-17: clean build, 4/4 CTests,
   `native_check` exit 0, and a launch from a different working directory.
 
+### Linux build (2026-10-17)
+
+Ubuntu 24.04 (kernel 6.8), GCC 13.3, CMake 3.28.3, Qt 6.4.2, GDAL 3.8.4, GLEW 2.2.0,
+R/Rcpp/RInside from apt (`r-base-dev`, `r-cran-rcpp`, `r-cran-rinside`). Configure
+and build succeeded with no source or CMake changes, so Qt 6.4 is sufficient even
+though development used 6.11. `QT_QPA_PLATFORM=offscreen ctest` passed 4/4. CMake
+logs a harmless "Could NOT find XKB" from Qt. **Not run on Linux:** `gl_probe`,
+`native_check` and the interactive application, since the machine had no display.
+Whether the legacy OpenGL 2.1 renderer behaves correctly under Mesa/X11/Wayland is
+therefore still unknown.
+
 ## Limits and open work
 
-Not validated: Linux, a distributable macOS bundle, physical mouse/trackpad
+Not validated: the Linux GUI (build and headless tests only), a distributable macOS bundle, physical mouse/trackpad
 hardware (the native checks synthesize Qt events), and other display scales. The
 numerical tests validate the stored cumulative-data representation, not the
 underlying ecological models. The Golden Eagle auxiliary image
@@ -114,7 +126,8 @@ Possible follow-ups, none scheduled:
 
 1. Path-style includes (`"dataflow/Dataflow.hpp"`) instead of flat names.
 2. CI for the headless tests (needs Qt, R/Rcpp/RInside and GDAL on the runner).
-3. Linux build and testing.
+3. Run `gl_probe` and `native_check` on a Linux desktop (X11 and Wayland), and
+   add a Linux CI job for the headless tests.
 4. Replace the legacy OpenGL renderer (macOS has deprecated OpenGL).
 5. Move R loading off the UI thread; reduce `using namespace std;` in headers and
    the shared global state behind `Global`.
