@@ -56,6 +56,16 @@ int main(int argc, char **argv) {
             window.update(); QTest::qWait(100);
             const QString output=argc>1 ? QString::fromLocal8Bit(argv[1]) : "native-initial.png";
             if(!window.grabFramebuffer().save(output)) throw std::runtime_error("Cannot save screenshot");
+            { // H shows the help overlay (mostly black sheet); any key dismisses it
+                const QImage normal=window.grabFramebuffer();
+                QTest::keyClick(&window,Qt::Key_H); QTest::qWait(100);
+                const QImage help=window.grabFramebuffer();
+                help.save(output+"-help.png");
+                long dark=0; for(int y=0;y<help.height();++y) for(int x=0;x<help.width();++x) dark+=qGray(help.pixel(x,y))<16;
+                if(dark<0.7*help.width()*help.height()) throw std::runtime_error("Help overlay not shown");
+                QTest::keyClick(&window,Qt::Key_Escape); QTest::qWait(100);
+                if(window.grabFramebuffer()!=normal) throw std::runtime_error("Help overlay not dismissed");
+            }
             auto drag = [&](QPoint from, QPoint to, Qt::MouseButton button = Qt::LeftButton) {
                 QTest::mouseMove(&window, from); QTest::qWait(50); QTest::mousePress(&window, button, Qt::NoModifier, from);
                 QTest::mouseMove(&window, from+QPoint(10,5), 30);

@@ -115,6 +115,7 @@ public:
     GLuint                           usa_area_gl_list = 0;
 
     Texture*                         bv_logo;
+    Texture*                         bv_help;   // key/mouse reference overlay (H)
 
 public:
 
