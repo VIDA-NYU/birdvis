@@ -1,3 +1,5 @@
+<p align="center"><img src="resources/bvlogo.png" width="200" alt="BirdVis"></p>
+
 # BirdVis
 
 Bird-distribution visualization, ported to Qt6/C++17 while retaining the legacy
