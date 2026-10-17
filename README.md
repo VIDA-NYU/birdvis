@@ -101,7 +101,7 @@ These are synthesized Qt interactions on a native display, using Qt dialogs for
 repeatable automation; physical trackpad
 hardware and other displays/platforms still need user testing.
 
-See [PLAN.md](docs/PLAN.md) for the migration record and verification limits.
+See [PLAN.md](PLAN.md) for the migration record and verification limits.
 
 ## Original resources
 
